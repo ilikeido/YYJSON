@@ -35,4 +35,21 @@
 @property (copy,nonatomic)NSString *country;
 @property (strong,nonatomic)Data *subdata;
 @property (copy,nonatomic)NSString *miguo;
+@property (nonatomic,strong) NSArray *locations;
+@end
+
+@interface Person : NSObject
+
+@property(nonatomic,strong) NSString *name;
+@property(nonatomic,assign) int age;
+
+@end
+
+@interface Location : NSObject
+
+@property(nonatomic,strong) NSNumber *loc;
+@property(nonatomic,strong) NSNumber *lat;
+
+@property(nonatomic,strong) Person *person;
+
 @end

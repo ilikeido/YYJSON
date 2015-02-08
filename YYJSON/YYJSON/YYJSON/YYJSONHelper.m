@@ -31,8 +31,8 @@
 }
 
 /**
-*   如果result是一个集合，并且只有一个元素，就直接返回集合中的元素。
-*/
+ *   如果result是一个集合，并且只有一个元素，就直接返回集合中的元素。
+ */
 - (id)smartResult
 {
     if ([_result isKindOfClass:[NSArray class]])
@@ -141,8 +141,8 @@ static NSMutableDictionary *YY_JSON_OBJECT_KEYDICTS = nil;
 
 
 /**
-*  应该比较脆弱，不支持太复杂的对象。
-*/
+ *  应该比较脆弱，不支持太复杂的对象。
+ */
 - (NSDictionary *)YYJSONDictionary
 {
     NSDictionary *keyDict = [self.class YYJSONKeyDict];
@@ -173,7 +173,7 @@ static NSMutableDictionary *YY_JSON_OBJECT_KEYDICTS = nil;
                 NSDate *date = (NSDate *) value;
                 value = [[self.class getUTCFormatter] stringFromDate:date];
             }
-
+            
             [jsonDict setValue:value forKey:key];
         }
     }];
@@ -245,6 +245,34 @@ static void YY_swizzleInstanceMethod(Class c, SEL original, SEL replacement) {
 @end
 
 @implementation NSObject (YYProperties)
+
+-(Class)classForPropertieKey:(NSString *)key{
+    objc_property_t protpery_t = class_getProperty([self class], [key UTF8String]);
+    if (protpery_t) {
+        const char *	attr = property_getAttributes(protpery_t);
+        const char * type = &attr[1];
+        if ( type[0] == '@' && type[1] == '"')
+        {
+            char typeClazz[128] = { 0 };
+            const char * mclazz = &type[2];
+            const char * clazzEnd = strchr( mclazz, '"' );
+            if ( clazzEnd && mclazz != clazzEnd )
+            {
+                unsigned int size = (unsigned int)(clazzEnd - mclazz);
+                strncpy( &typeClazz[0], mclazz, size );
+            }
+            if (typeClazz) {
+                return  NSClassFromString([NSString stringWithUTF8String:typeClazz]);
+            }
+        }
+    }
+    return nil;
+}
+
++(Class)classForYYPropertieArrayKey:(NSString *)key{
+    return nil;
+}
+
 - (NSArray *)yyPropertiesOfClass:(Class)aClass
 {
     NSMutableArray *propertyNames = [[NSMutableArray alloc] init];
@@ -305,16 +333,16 @@ const char *property_getTypeString(objc_property_t property) {
     const char *attrs = property_getAttributes(property);
     if (attrs == NULL)
         return (NULL);
-
+    
     static char buffer[256];
     const char *e = strchr(attrs, ',');
     if (e == NULL)
         return (NULL);
-
+    
     int len = (int) (e - attrs);
     memcpy(buffer, attrs, len);
     buffer[len] = '\0';
-
+    
     return (buffer);
 }
 
@@ -399,10 +427,10 @@ const char *property_getTypeString(objc_property_t property) {
     [YYJSONKeyDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         if ([[dict valueForKeyPath:key] isKindOfClass:[NSArray class]])
         {
-            if ([self classForString:obj valueKey:nil])
+            if ([modelClass classForYYPropertieArrayKey:key])
             {
                 NSString *valueKey = nil;
-                NSArray *array = [self objectsForModelClass:[self classForString:obj valueKey:&valueKey] fromArray:[dict valueForKeyPath:key]];
+                NSArray *array = [self objectsForModelClass:[modelClass classForYYPropertieArrayKey:key] fromArray:[dict valueForKeyPath:key]];
                 if (array.count)
                 {
                     if (valueKey)
@@ -421,6 +449,9 @@ const char *property_getTypeString(objc_property_t property) {
         {
             NSString *valueKey = nil;
             Class otherClass = [self classForString:obj valueKey:&valueKey];
+            if (!otherClass) {
+                otherClass = [model classForPropertieKey:key];
+            }
             if (otherClass)
             {
                 id object = [self objectForModelClass:otherClass fromDict:[dict valueForKeyPath:key] withJSONKeyDict:[otherClass YYJSONKeyDict]];
@@ -598,8 +629,8 @@ const char *property_getTypeString(objc_property_t property) {
 }
 
 /**
-*   循环集合将每个对象转为字典，得到字典集合，然后转为jsonData
-*/
+ *   循环集合将每个对象转为字典，得到字典集合，然后转为jsonData
+ */
 - (NSData *)YYJSONData
 {
     NSMutableArray *jsonDictionaries = [[NSMutableArray alloc] init];

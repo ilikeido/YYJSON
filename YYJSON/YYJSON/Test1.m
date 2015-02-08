@@ -17,8 +17,24 @@
     [self bindYYJSONKey:@"data.subdata" toProperty:@"subdata.Data"];
     [self bindYYJSONKey:@"data.subdata.country" toProperty:@"miguo"];
 }
+
++ (Class)classForYYPropertieArrayKey:(NSString *)key{
+    if ([key isEqual:@"locations"]) {
+        return [Location class];
+    }
+    return nil;
+}
+
 @end
 
 @implementation Data
+
+@end
+
+@implementation Location
+
+@end
+
+@implementation Person
 
 @end
